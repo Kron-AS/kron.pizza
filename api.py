@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import locale
+import os
 from datetime import datetime, timedelta
 
 import pytz
@@ -10,6 +11,8 @@ import slack
 
 locale.setlocale(locale.LC_ALL, "nb_NO.utf8")
 
+COMPANY_NAME = os.environ["COMPANY_NAME"]
+PIZZA_CHANNEL_ID = os.environ["PIZZA_CHANNEL_SLACK_ID"]
 PEOPLE_PER_EVENT = 5
 REPLY_DEADLINE_IN_HOURS = 24
 DAYS_IN_ADVANCE_TO_INVITE = 10
@@ -103,14 +106,15 @@ def finalize_event_if_complete():
         db.mark_event_as_finalized(event_id)
         ids_string = ", ".join(slack_ids)
         slack.send_slack_message(
-            "#pizza",
-            "Halloi! %s! Dere skal spise 🍕 på %s, %s. %s booker bord, og %s legger ut for maten. Blank betaler!"
+            PIZZA_CHANNEL_ID,
+            "Halloi! %s! Dere skal spise 🍕 på %s, %s. %s booker bord, og %s legger ut for maten. %s betaler!"
             % (
                 ids_string,
                 place,
                 timestamp.strftime("%A %d. %B kl %H:%M"),
                 slack_ids[0],
                 slack_ids[1],
+                COMPANY_NAME
             ),
         )
 

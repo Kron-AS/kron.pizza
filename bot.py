@@ -8,7 +8,6 @@ from slackclient import SlackClient
 
 import api
 
-pizza_channel_id = os.environ["PIZZA_CHANNEL_SLACK_ID"]
 slack_token = os.environ["SLACK_API_TOKEN"]
 
 sc = SlackClient(slack_token)
