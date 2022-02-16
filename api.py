@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 
 import locale
 from datetime import datetime, timedelta
@@ -74,7 +73,7 @@ def invite_if_needed():
             ),
             BUTTONS_ATTACHMENT,
         )
-        print("%s was invited to event on %s" % (user_id, timestamp))
+        print(f"{user_id} was invited to event on {timestamp}")
 
 
 def send_reminders():
