@@ -2,9 +2,9 @@
 
 import os
 
-from slack import WebClient
+from slack_sdk.web import WebClient
 
-slack_token = os.environ["SLACK_API_TOKEN"]
+slack_token = os.environ["SLACK_BOT_TOKEN"]
 sc = WebClient(token=slack_token)
 
 

@@ -83,10 +83,13 @@ def send_reminders():
 
     for invitation in inviations:
         slack_id, invited_at, reminded_at = invitation
-        remind_timestamp = datetime.now(pytz.utc) + timedelta(
-            hours=-HOURS_BETWEEN_REMINDERS
-        )
-        if reminded_at < remind_timestamp:
+
+        # already reminded
+        if reminded_at:
+            continue
+
+        remind_timestamp = invited_at + timedelta(hours=HOURS_BETWEEN_REMINDERS)
+        if datetime.now(tz=pytz.utc) > remind_timestamp:
             slack.send_slack_message(
                 slack_id, "Hei du! Jeg hørte ikke noe mer? Er du gira? (ja/nei)"
             )
@@ -149,5 +152,5 @@ def get_invited_users():
 
 def sync_db_with_slack_and_return_count():
     slack_users = slack.get_real_users(slack.get_slack_users())
-    db.update_slack_users(slack_users)
+    # db.update_slack_users(slack_users)
     return len(slack_users)
