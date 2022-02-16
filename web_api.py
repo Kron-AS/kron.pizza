@@ -3,7 +3,7 @@
 import json
 
 import requests
-from flask import Flask, Response, request
+from flask import Flask, request
 
 import api
 
@@ -13,7 +13,6 @@ app = Flask(__name__)
 @app.route("/api/action", methods=["GET", "POST"])
 def action():
     payload = json.loads(request.form["payload"])
-    # team_id = requestDict['team']['id']
     responses = []
     response_url = payload["response_url"]
 
