@@ -1,17 +1,16 @@
 #!/usr/bin/env python
 
-import base64
 import os
+import sys
 from time import sleep
 
-import requests
 from slackclient import SlackClient
 
 import api
 
-pizza_channel_id = "C2NC8DBN1"
-
+pizza_channel_id = os.environ["PIZZA_CHANNEL_SLACK_ID"]
 slack_token = os.environ["SLACK_API_TOKEN"]
+
 sc = SlackClient(slack_token)
 
 
@@ -19,30 +18,17 @@ def is_dm(message):
     return message["channel"][0] == "D"
 
 
-if sc.rtm_connect():
+if not sc.rtm_connect():
+    print("Connection Failed, invalid token?")
+    sys.exit(1)
+
+
+def main():
     while True:
         event_list = sc.rtm_read()
         message_list = list(filter(lambda m: m["type"] == "message", event_list))
         for message in message_list:
-            if message["channel"] == pizza_channel_id:
-                if "files" in message:
-                    api.send_slack_message(message["channel"], "Takk for fil! 🤙")
-                    headers = {"Authorization": "Bearer %s" % slack_token}
-                    for file in message["files"]:
-                        r = requests.get(file["url_private"], headers=headers)
-                        b64 = base64.b64encode(r.content).decode("utf-8")
-                        payload = {
-                            "file": "data:image;base64,%s" % b64,
-                            "upload_preset": "blank.pizza",
-                        }
-                        r2 = requests.post(
-                            "https://api.cloudinary.com/v1_1/blank/image/upload",
-                            data=payload,
-                        )
-                        api.save_image(
-                            r2.json()["public_id"], file["user"], file["title"]
-                        )
-            elif is_dm(message) and "user" in message:
+            if is_dm(message) and "user" in message:
                 if message["user"] in api.get_invited_users():
                     if message["text"].lower() == "ja":
                         api.rsvp(message["user"], "attending")
@@ -59,5 +45,6 @@ if sc.rtm_connect():
                         )
         sleep(0.5)
 
-else:
-    print("Connection Failed, invalid token?")
+
+if __name__ == "__main__":
+    main()
