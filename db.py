@@ -4,7 +4,9 @@ import os
 
 
 def create_connection_string(db_host, db_name, db_user, db_passwd):
-    return "host='{}' dbname='{}' user='{}' password='{}'".format(db_host, db_name, db_user, db_passwd)
+    return "host='{}' dbname='{}' user='{}' password='{}'".format(
+        db_host, db_name, db_user, db_passwd
+    )
 
 
 def connect_to_pizza_db():
@@ -13,8 +15,7 @@ def connect_to_pizza_db():
     db_user = os.environ["DB_USER"]
     db_passwd = os.environ["DB_PASSWD"]
 
-    conn = connect(create_connection_string(
-        db_host, db_name, db_user, db_passwd))
+    conn = connect(create_connection_string(db_host, db_name, db_user, db_passwd))
     return conn
 
 
@@ -22,18 +23,22 @@ pizza_conn = connect_to_pizza_db()
 
 
 def update_slack_users(slack_users):
-    usernames = [(u['id'], u['name'], u['profile']['email'])
-                 for u in slack_users]
+    usernames = [(u["id"], u["name"], u["profile"]["email"]) for u in slack_users]
 
     with pizza_conn:
         with pizza_conn.cursor() as curs:
             curs.executemany(
-                "INSERT INTO slack_users (slack_id, current_username, email) VALUES (%s,%s,%s) ON CONFLICT (slack_id) DO UPDATE SET current_username = EXCLUDED.current_username, email = EXCLUDED.email;", usernames)
+                "INSERT INTO slack_users (slack_id, current_username, email) VALUES (%s,%s,%s) ON CONFLICT (slack_id) DO UPDATE SET current_username = EXCLUDED.current_username, email = EXCLUDED.email;",
+                usernames,
+            )
 
 
-def get_users_to_invite(number_of_users_to_invite, event_id, total_number_of_employees, employees_per_event):
+def get_users_to_invite(
+    number_of_users_to_invite, event_id, total_number_of_employees, employees_per_event
+):
     number_of_events_regarded = math.ceil(
-        total_number_of_employees / employees_per_event)
+        total_number_of_employees / employees_per_event
+    )
 
     sql = """
         SELECT slack_users.slack_id, count(rsvp) AS events_attended
@@ -50,8 +55,9 @@ def get_users_to_invite(number_of_users_to_invite, event_id, total_number_of_emp
 
     with pizza_conn:
         with pizza_conn.cursor() as curs:
-            curs.execute(sql, (number_of_events_regarded,
-                               event_id, number_of_users_to_invite))
+            curs.execute(
+                sql, (number_of_events_regarded, event_id, number_of_users_to_invite)
+            )
             rows = curs.fetchall()
             return [x[0] for x in rows]
 
@@ -69,7 +75,8 @@ def save_invitations(slack_ids, event_id):
     with pizza_conn:
         with pizza_conn.cursor() as curs:
             curs.executemany(
-                "INSERT INTO invitations (event_id, slack_id) VALUES (%s, %s);", values)
+                "INSERT INTO invitations (event_id, slack_id) VALUES (%s, %s);", values
+            )
 
 
 def get_event_in_need_of_invitations(days_in_advance_to_invite, people_per_event):
@@ -98,7 +105,9 @@ def get_invited_users():
 
 
 def rsvp(slack_id, answer):
-    sql = "UPDATE invitations SET rsvp = %s WHERE slack_id = %s AND rsvp = 'unanswered';"
+    sql = (
+        "UPDATE invitations SET rsvp = %s WHERE slack_id = %s AND rsvp = 'unanswered';"
+    )
 
     with pizza_conn:
         with pizza_conn.cursor() as curs:
@@ -151,7 +160,8 @@ def get_attending_users(event_id):
 
 def get_slack_ids_from_emails(emails):
     sql = "select slack_id from slack_users where email in ('%s');" % (
-        "','".join(emails))
+        "','".join(emails)
+    )
 
     with pizza_conn:
         with pizza_conn.cursor() as curs:
