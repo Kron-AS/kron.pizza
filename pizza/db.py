@@ -4,18 +4,11 @@ import os
 from psycopg2 import connect
 
 
-DB_HOST = os.environ["DB_HOST"]
-DB_NAME = os.environ["DB_NAME"]
-DB_USER = os.environ["DB_USER"]
-DB_PASSWD = os.environ["DB_PASSWD"]
+DB_URL = os.environ["DATABASE_URL"]
 
 
 def connect_to_pizza_db():
-    return connect(
-        "host='{}' dbname='{}' user='{}' password='{}'".format(
-            DB_HOST, DB_NAME, DB_USER, DB_PASSWD
-        )
-    )
+    return connect(dsn=DB_URL)
 
 
 pizza_conn = connect_to_pizza_db()
