@@ -5,14 +5,17 @@ import json
 import requests
 from flask import Flask, request
 
-import api
+from pizza import api
 
 app = Flask(__name__)
 
 
 @app.route("/api/action", methods=["GET", "POST"])
 def action():
-    payload = json.loads(request.form["payload"])
+    if not request.form.get("payload"):
+        return "Payload not provided", 400
+
+    payload = json.loads(request.form.get("payload"))
     responses = []
     response_url = payload["response_url"]
 
@@ -54,3 +57,7 @@ def button_rsvp(user_id, rsvp, original_message, response_url):
 def response_message(original_message, text):
     original_message["attachments"] = [{"text": text}]
     return json.dumps(original_message)
+
+
+if __name__ == "__main__":
+    app.run(host="0.0.0.0")

@@ -1,3 +1,3 @@
-worker: python bot.py
-batch: python batch.py
-web: gunicorn web_api:app --log-file -
+worker: python pizza/bot.py
+batch: python pizza/batch.py
+web: gunicorn pizza.web_api:app --log-file -

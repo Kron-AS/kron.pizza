@@ -2,14 +2,14 @@
 
 import os
 
-from slackclient import SlackClient
+from slack import WebClient
 
 slack_token = os.environ["SLACK_API_TOKEN"]
-sc = SlackClient(slack_token)
+sc = WebClient(token=slack_token)
 
 
 def get_slack_users():
-    return sc.api_call("users.list")["members"]
+    return sc.users_list()["members"]
 
 
 def get_real_users(all_users):
@@ -24,8 +24,7 @@ def get_real_users(all_users):
 
 
 def send_slack_message(channel_id, text, attachments=None, thread_ts=None):
-    return sc.api_call(
-        "chat.postMessage",
+    return sc.chat_postMessage(
         channel=channel_id,
         as_user=True,
         text=text,

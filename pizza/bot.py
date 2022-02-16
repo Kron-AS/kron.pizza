@@ -6,7 +6,7 @@ from time import sleep
 
 from slackclient import SlackClient
 
-import api
+from pizza import api
 
 slack_token = os.environ["SLACK_API_TOKEN"]
 

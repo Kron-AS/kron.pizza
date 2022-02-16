@@ -6,10 +6,9 @@ from datetime import datetime, timedelta
 
 import pytz
 
-import db
-import slack
+from pizza import db, slack
 
-locale.setlocale(locale.LC_ALL, "nb_NO.utf8")
+locale.setlocale(locale.LC_ALL, os.environ.get("LOCALE_NAME") or "nb_NO.utf8")
 
 COMPANY_NAME = os.environ["COMPANY_NAME"]
 PIZZA_CHANNEL_ID = os.environ["PIZZA_CHANNEL_SLACK_ID"]
