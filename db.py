@@ -29,7 +29,14 @@ def update_slack_users(slack_users):
     with pizza_conn:
         with pizza_conn.cursor() as curs:
             curs.executemany(
-                "INSERT INTO slack_users (slack_id, current_username, email) VALUES (%s,%s,%s) ON CONFLICT (slack_id) DO UPDATE SET current_username = EXCLUDED.current_username, email = EXCLUDED.email;",
+                """
+                INSERT INTO slack_users (slack_id, current_username, email)
+                VALUES (%s,%s,%s)
+                ON CONFLICT (slack_id)
+                DO UPDATE SET
+                    current_username = EXCLUDED.current_username,
+                    email = EXCLUDED.email
+                """,
                 usernames,
             )
 
