@@ -20,7 +20,7 @@ def get_real_users(all_users):
         and not u["is_bot"]
         and not u["is_restricted"]
         and not u["name"] == "slackbot"
-    ]  # type : list
+    ]
 
 
 def send_slack_message(channel_id, text, attachments=None, thread_ts=None):

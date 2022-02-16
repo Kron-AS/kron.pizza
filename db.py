@@ -4,20 +4,18 @@ import os
 from psycopg2 import connect
 
 
-def create_connection_string(db_host, db_name, db_user, db_passwd):
-    return "host='{}' dbname='{}' user='{}' password='{}'".format(
-        db_host, db_name, db_user, db_passwd
-    )
+DB_HOST = os.environ["DB_HOST"]
+DB_NAME = os.environ["DB_NAME"]
+DB_USER = os.environ["DB_USER"]
+DB_PASSWD = os.environ["DB_PASSWD"]
 
 
 def connect_to_pizza_db():
-    db_host = os.environ["DB_HOST"]
-    db_name = os.environ["DB_NAME"]
-    db_user = os.environ["DB_USER"]
-    db_passwd = os.environ["DB_PASSWD"]
-
-    conn = connect(create_connection_string(db_host, db_name, db_user, db_passwd))
-    return conn
+    return connect(
+        "host='{}' dbname='{}' user='{}' password='{}'".format(
+            DB_HOST, DB_NAME, DB_USER, DB_PASSWD
+        )
+    )
 
 
 pizza_conn = connect_to_pizza_db()

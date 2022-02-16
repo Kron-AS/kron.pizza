@@ -114,7 +114,7 @@ def finalize_event_if_complete():
                 timestamp.strftime("%A %d. %B kl %H:%M"),
                 slack_ids[0],
                 slack_ids[1],
-                COMPANY_NAME
+                COMPANY_NAME,
             ),
         )
 
