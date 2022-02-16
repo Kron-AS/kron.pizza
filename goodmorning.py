@@ -1,8 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import api
 import floq_db
+
+import api
 import db
 
 channel = "#random"

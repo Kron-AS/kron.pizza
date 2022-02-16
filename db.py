@@ -1,6 +1,7 @@
-from psycopg2 import connect
 import math
 import os
+
+from psycopg2 import connect
 
 
 def create_connection_string(db_host, db_name, db_user, db_passwd):

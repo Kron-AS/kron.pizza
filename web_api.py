@@ -1,9 +1,11 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from flask import Flask, request, Response
-import requests
 import json
+
+import requests
+from flask import Flask, Response, request
+
 import api
 
 app = Flask(__name__)

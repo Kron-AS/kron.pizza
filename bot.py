@@ -1,13 +1,14 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import api
-import os
-import requests
 import base64
-
-from slackclient import SlackClient
+import os
 from time import sleep
+
+import requests
+from slackclient import SlackClient
+
+import api
 
 pizza_channel_id = "C2NC8DBN1"
 

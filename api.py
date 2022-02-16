@@ -1,11 +1,13 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import slack
-import db
 import locale
-import pytz
 from datetime import datetime, timedelta
+
+import pytz
+
+import db
+import slack
 
 locale.setlocale(locale.LC_ALL, "nb_NO.utf8")
 
