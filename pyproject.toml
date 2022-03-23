@@ -3,6 +3,7 @@ name = "kron.pizza"
 version = "0.1.0"
 description = ""
 authors = ["Herman S <hermansc@users.noreply.github.com>"]
+packages = [{ include = "pizza" }]
 
 [tool.poetry.dependencies]
 python = "^3.9"
@@ -10,11 +11,14 @@ psycopg2 = "^2.9.3"
 pytz = "^2021.3"
 slack-sdk = "^3.14.1"
 slack-bolt = "^1.11.4"
+SQLAlchemy = "^1.4.32"
 
 [tool.poetry.dev-dependencies]
 black = "^22.1.0"
 isort = "^5.10.1"
 flake8 = "^4.0.1"
+sqlalchemy-stubs = "^0.4"
+ipython = "^8.1.1"
 
 [tool.isort]
 # The following settings resolve conflicts between isort and black.

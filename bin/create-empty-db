@@ -1,0 +1,15 @@
+#!/usr/bin/env python3
+
+from pizza.db import get_engine
+from pizza.models import Base
+from pizza.models import * # noqa
+from sqlalchemy import create_engine
+
+
+def main():
+    engine = get_engine()
+    Base.metadata.create_all(engine)
+
+
+if __name__ == "__main__":
+    main()

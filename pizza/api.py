@@ -1,14 +1,12 @@
 #!/usr/bin/env python
-
-import locale
 import os
 from datetime import datetime, timedelta
 
 import pytz
 
-from pizza import db, slack
-
-locale.setlocale(locale.LC_ALL, os.environ.get("LOCALE_NAME") or "nb_NO.utf8")
+import pizza.services
+from pizza import slack
+from pizza.models import RSVP
 
 COMPANY_NAME = os.environ["COMPANY_NAME"]
 PIZZA_CHANNEL_ID = os.environ["PIZZA_CHANNEL_SLACK_ID"]
@@ -19,20 +17,20 @@ HOURS_BETWEEN_REMINDERS = 4
 
 BUTTONS_ATTACHMENT = [
     {
-        "fallback": "Det funket ikke å svare :/",
+        "fallback": "Could not answer :/",
         "callback_id": "rsvp",
         "color": "#3AA3E3",
         "attachment_type": "default",
         "actions": [
             {
                 "name": "option",
-                "text": "Hells yesss!!! 🍕🍕🍕",
+                "text": "OH YES! :pizza:",
                 "type": "button",
                 "value": "attending",
             },
             {
                 "name": "option",
-                "text": "Nah ☹️",
+                "text": "Nah :cry:",
                 "type": "button",
                 "value": "not attending",
             },
@@ -42,115 +40,125 @@ BUTTONS_ATTACHMENT = [
 
 
 def invite_if_needed():
-    event = db.get_event_in_need_of_invitations(
-        DAYS_IN_ADVANCE_TO_INVITE, PEOPLE_PER_EVENT
+    event = pizza.services.get_event_in_need_of_invitations(
+        days_in_advance_to_invite=DAYS_IN_ADVANCE_TO_INVITE,
+        people_per_event=PEOPLE_PER_EVENT,
     )
     if event is None:
-        print("No users were invited")
+        print("No events in need of invited. No users were invited.")
         return
 
-    event_id, timestamp, place, number_of_already_invited = event
-    number_of_employees = sync_db_with_slack_and_return_count()
-    number_to_invite = PEOPLE_PER_EVENT - number_of_already_invited
-    users_to_invite = db.get_users_to_invite(
-        number_to_invite, event_id, number_of_employees, PEOPLE_PER_EVENT
+    number_of_employees = pizza.services.get_number_of_slack_users()
+    number_to_invite = PEOPLE_PER_EVENT - pizza.services.get_number_of_invited_users(
+        event_id=event.id
+    )
+    users_to_invite = pizza.services.get_users_to_invite(
+        event_id=event.id,
+        number_of_users_to_invite=number_to_invite,
+        total_number_of_employees=number_of_employees,
+        employees_per_event=PEOPLE_PER_EVENT,
     )
 
     if len(users_to_invite) == 0:
         print(
-            "Event in need of users, but noone to invite"
+            f"Event ({event.id}) in need of users, but noone to invite"
         )  # TODO: needs to be handled
         return
 
-    db.save_invitations(users_to_invite, event_id)
+    pizza.services.save_invitations(slack_users=users_to_invite, event_id=event.id)
 
-    for user_id in users_to_invite:
+    for slack_user in users_to_invite:
         slack.send_slack_message(
-            user_id,
-            "Du er invitert til 🍕 på %s, %s. Pls svar innen %d timer 🙏. Kan du?"
+            slack_user.slack_id,
+            "You're invited to eat pizza at %s, %s. Please answer within %d hours 🙏. Will you come?"
             % (
-                place,
-                timestamp.strftime("%A %d. %B kl %H:%M"),
+                event.location,
+                event.time.strftime("%A %d. %B kl %H:%M"),
                 REPLY_DEADLINE_IN_HOURS,
             ),
             BUTTONS_ATTACHMENT,
         )
-        print(f"{user_id} was invited to event on {timestamp}")
+        print(f"{slack_user.current_username} was invited to event on {event.time}")
 
 
 def send_reminders():
-    inviations = db.get_unanswered_invitations()
+    invitations = pizza.services.get_unanswered_invitations()
 
-    for invitation in inviations:
-        slack_id, invited_at, reminded_at = invitation
-
+    for invitation in invitations:
         # already reminded
-        if reminded_at:
+        if invitation.reminded_at:
             continue
 
-        remind_timestamp = invited_at + timedelta(hours=HOURS_BETWEEN_REMINDERS)
+        remind_timestamp = invitation.invited_at + timedelta(
+            hours=HOURS_BETWEEN_REMINDERS
+        )
         if datetime.now(tz=pytz.utc) > remind_timestamp:
             slack.send_slack_message(
-                slack_id, "Hei du! Jeg hørte ikke noe mer? Er du gira? (ja/nei)"
+                invitation.slack_user_id,
+                "Hey! I didn't hear back from you? :sob: Are you up for some pizza? (yes/no)",
             )
-            db.update_reminded_at(slack_id)
-            print("%s was reminded about an event." % slack_id)
+            pizza.services.update_reminded_at(slack_id=invitation.slack_user_id)
+            print("%s was reminded about an event." % invitation.slack_user_id)
 
 
 def finalize_event_if_complete():
-    event = db.get_event_ready_to_finalize(PEOPLE_PER_EVENT)
+    event = pizza.services.get_event_ready_to_finalize(
+        people_per_event=PEOPLE_PER_EVENT
+    )
     if event is None:
         print("No events ready to finalize")
-    else:
-        event_id, timestamp, place = event
-        sync_db_with_slack_and_return_count()
-        slack_ids = ["<@%s>" % user for user in db.get_attending_users(event_id)]
-        db.mark_event_as_finalized(event_id)
-        ids_string = ", ".join(slack_ids)
-        slack.send_slack_message(
-            PIZZA_CHANNEL_ID,
-            "Halloi! %s! Dere skal spise 🍕 på %s, %s. %s booker bord, og %s legger ut for maten. %s betaler!"
-            % (
-                ids_string,
-                place,
-                timestamp.strftime("%A %d. %B kl %H:%M"),
-                slack_ids[0],
-                slack_ids[1],
-                COMPANY_NAME,
-            ),
-        )
+        return
+
+    slack_ids = [
+        "<@%s>" % user.slack_id
+        for user in pizza.services.get_attending_users(event_id=event.id)
+    ]
+
+    pizza.services.mark_event_as_finalized(event_id=event.id)
+
+    ids_string = ", ".join(slack_ids)
+    slack.send_slack_message(
+        PIZZA_CHANNEL_ID,
+        "Hey folks! :sparkles: %s! You're eating some awesome pizza together at %s, %s. %s books the table, and %s expenses the meal (unless you agree otherwise). Have fun!"
+        % (
+            ids_string,
+            event.location,
+            event.time.strftime("%A %d. %B kl %H:%M"),
+            slack_ids[0],
+            slack_ids[1],
+        ),
+    )
 
 
 def auto_reply():
-    users_that_did_not_reply = db.auto_reply_after_deadline(REPLY_DEADLINE_IN_HOURS)
-    if users_that_did_not_reply is None:
+    slack_ids_that_did_not_reply = pizza.services.auto_reply_after_deadline(
+        deadline_hours=REPLY_DEADLINE_IN_HOURS
+    )
+    if not slack_ids_that_did_not_reply:
         return
 
-    for user_id in users_that_did_not_reply:
+    for slack_id in slack_ids_that_did_not_reply:
         slack.send_slack_message(
-            user_id,
-            "Neivel, da antar jeg du ikke kan/gidder. Håper du blir med neste gang! 🤞",
+            slack_id,
+            "Alright then, I'll assume you can't make it. Crossing my fingers for a more positive response next time! 🤞",
         )
-        print("%s didn't answer. Setting RSVP to not attending.")
+        print("%s didn't answer. Setting RSVP to not attending." % slack_id)
 
 
-def save_image(cloudinary_id, slack_id, title):
-    db.save_image(cloudinary_id, slack_id, title)
-
-
-def rsvp(slack_id, answer):
-    db.rsvp(slack_id, answer)
+def rsvp(slack_id: str, answer: RSVP):
+    pizza.services.rsvp(slack_id=slack_id, answer=answer)
 
 
 def send_slack_message(channel_id, text, attachments=None, thread_ts=None):
+    if channel_id != "U01KJCSS9BQ":  # TODO: Remove
+        return
     return slack.send_slack_message(channel_id, text, attachments, thread_ts)
 
 
 def get_invited_users():
-    return db.get_invited_users()
+    return pizza.services.get_invited_users()
 
 
-def sync_db_with_slack_and_return_count():
+def sync_db_with_slack() -> None:
     slack_users = slack.get_real_users(slack.get_slack_users())
-    # db.update_slack_users(slack_users)
-    return len(slack_users)
+    pizza.services.update_slack_users(slack_users=slack_users)
