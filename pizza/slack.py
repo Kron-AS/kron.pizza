@@ -46,12 +46,11 @@ def send_slack_message(channel_id, text, attachments=None, thread_ts=None):
         )
         return
 
-    # TODO: enable when safe
-    # sc = slack_client()
-    # return sc.chat_postMessage(
-    #     channel=channel_id,
-    #     as_user=True,
-    #     text=text,
-    #     attachments=attachments,
-    #     thread_ts=thread_ts,
-    # )
+    sc = slack_client()
+    return sc.chat_postMessage(
+        channel=channel_id,
+        as_user=True,
+        text=text,
+        attachments=attachments,
+        thread_ts=thread_ts,
+    )
