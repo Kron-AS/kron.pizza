@@ -12,11 +12,6 @@ from pizza.utils import tz_aware_now
 
 
 def update_slack_users(*, slack_users: list[Any]):
-    EXCLUDE_SLACK_IDS = {
-        "U5FUGU3D2",  # Kevin
-        "UBKA33N11",  # Benedicte
-        "U030NL2K42K",  # Kathrine
-    }
     data = [
         {
             "slack_id": u["id"],
@@ -24,7 +19,6 @@ def update_slack_users(*, slack_users: list[Any]):
             "email": u["profile"]["email"],
         }
         for u in slack_users
-        if u["id"] not in EXCLUDE_SLACK_IDS
     ]
 
     with session() as db:

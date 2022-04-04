@@ -22,6 +22,7 @@ class SlackUser(Base):
     email = Column(sa.Text, nullable=False)
     first_seen_at = Column(sa.Date, nullable=False, server_default=sa.func.now())
     is_active = Column(sa.Boolean, nullable=False, default=True)
+    is_opted_out = Column(sa.Boolean, nullable=False, default=False)
 
     def __repr__(self):
         return f"SlackUser(id={self.slack_id!r}, current_username={self.current_username!r}, email={self.email!r})"
