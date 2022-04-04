@@ -13,9 +13,16 @@ def get_engine(
     *, pool_size=None, max_overflow=None, **kwargs
 ) -> sqlalchemy.engine.Engine:
     return create_engine(
-        os.environ["DATABASE_URL"],
+        database_url(),
         **kwargs,
     )
+
+
+def database_url():
+    uri = os.getenv("DATABASE_URL")
+    if uri.startswith("postgres://"):
+        uri = uri.replace("postgres://", "postgresql://", 1)
+    return uri
 
 
 def create_session(**kwargs) -> sqlalchemy.orm.Session:

@@ -1,13 +1,12 @@
-import os
-
 from sqlalchemy import engine_from_config, pool
 
+import pizza.db
 from alembic import context
 from pizza.models import Base
 from pizza.utils import getLogger
 
 config = context.config
-config.set_main_option("sqlalchemy.url", os.environ["DATABASE_URL"])
+config.set_main_option("sqlalchemy.url", pizza.db.database_url())
 target_metadata = Base.metadata
 
 logger = getLogger(__name__)
