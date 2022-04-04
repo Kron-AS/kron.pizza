@@ -5,8 +5,6 @@ Revises: 2ff39dd5a9cc
 Create Date: 2022-04-04 21:25:52.964891
 
 """
-import sqlalchemy as sa
-
 from alembic import op
 
 # revision identifiers, used by Alembic.
@@ -17,9 +15,9 @@ depends_on = None
 
 
 def upgrade():
-    op.add_column("slack_users", sa.Column("is_opted_out", sa.Boolean(), nullable=True))
-    op.execute("UPDATE slack_users SET is_opted_out = false")
-    op.execute("ALTER TABLE slack_users ALTER COLUMN is_opted_out boolean NOT NULL")
+    op.execute(
+        "ALTER TABLE slack_users ADD COLUMN is_opted_out BOOLEAN NOT NULL DEFAULT FALSE"
+    )
 
 
 def downgrade():
