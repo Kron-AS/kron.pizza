@@ -68,6 +68,7 @@ def get_users_to_invite(
             )
             .filter(
                 SlackUser.is_active == True,  # noqa
+                SlackUser.is_opted_out == False,  # noqa
                 SlackUser.slack_id.notin_(
                     db.query(Invitation.slack_user_id).filter(
                         Invitation.event_id == event_id,
