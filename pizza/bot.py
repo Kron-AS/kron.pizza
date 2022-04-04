@@ -5,7 +5,7 @@ import os
 from slack_bolt import App
 from slack_bolt.adapter.socket_mode import SocketModeHandler
 
-from pizza import api
+from pizza import api, slack
 
 logging.basicConfig(level=logging.INFO)
 
@@ -30,7 +30,7 @@ def on_message(message, say, logger):
         logger.info(
             "Ignoring message, could not find invited user [user=%s]", message["user"]
         )
-        api.send_slack_message(
+        slack.send_slack_message(
             message["channel"],
             "Hehe, jeg er teit og skjønner ikke hva du vil. Ikke tid for pizza nå? 😳",
         )
@@ -38,16 +38,16 @@ def on_message(message, say, logger):
 
     if message["text"].lower() == "ja":
         api.rsvp(message["user"], "attending")
-        api.send_slack_message(message["channel"], "Sweet! 🤙")
+        slack.send_slack_message(message["channel"], "Sweet! 🤙")
         api.finalize_event_if_complete()
 
     elif message["text"].lower() == "nei":
         api.rsvp(message["user"], "not attending")
-        api.send_slack_message(message["channel"], "Ok 😏")
+        slack.send_slack_message(message["channel"], "Ok 😏")
         api.invite_if_needed()
 
     else:
-        api.send_slack_message(
+        slack.send_slack_message(
             message["channel"],
             "Hehe jeg er litt dum, jeg. Skjønner jeg ikke helt hva du mener 😳. Kan du være med? (ja/nei)",
         )
