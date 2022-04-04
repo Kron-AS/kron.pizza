@@ -7,6 +7,7 @@ import pytz
 import pizza.services
 from pizza import slack
 from pizza.models import RSVP
+from pizza.utils import getLogger
 
 COMPANY_NAME = os.environ["COMPANY_NAME"]
 PIZZA_CHANNEL_ID = os.environ["PIZZA_CHANNEL_SLACK_ID"]
@@ -38,6 +39,8 @@ BUTTONS_ATTACHMENT = [
     }
 ]
 
+logger = getLogger(__name__)
+
 
 def invite_if_needed():
     event = pizza.services.get_event_in_need_of_invitations(
@@ -45,7 +48,7 @@ def invite_if_needed():
         people_per_event=PEOPLE_PER_EVENT,
     )
     if event is None:
-        print("No events in need of invited. No users were invited.")
+        logger.info("No events in need of invited. No users were invited.")
         return
 
     number_of_employees = pizza.services.get_number_of_slack_users()
@@ -60,8 +63,8 @@ def invite_if_needed():
     )
 
     if len(users_to_invite) == 0:
-        print(
-            f"Event ({event.id}) in need of users, but noone to invite"
+        logger.info(
+            "Event in need of users, but noone to invite [event_id=%s]", event.id
         )  # TODO: needs to be handled
         return
 
@@ -78,7 +81,11 @@ def invite_if_needed():
             ),
             BUTTONS_ATTACHMENT,
         )
-        print(f"{slack_user.current_username} was invited to event on {event.time}")
+        logger.info(
+            "User was invited to event [event_id=%s, user=%s]",
+            event.id,
+            slack_user.current_username,
+        )
 
 
 def send_reminders():
@@ -98,7 +105,9 @@ def send_reminders():
                 "Hey! I didn't hear back from you? :sob: Are you up for some pizza? (yes/no)",
             )
             pizza.services.update_reminded_at(slack_id=invitation.slack_user_id)
-            print("%s was reminded about an event." % invitation.slack_user_id)
+            logger.info(
+                "User reminded about an event [user_id=%s]", invitation.slack_user_id
+            )
 
 
 def finalize_event_if_complete():
@@ -106,7 +115,7 @@ def finalize_event_if_complete():
         people_per_event=PEOPLE_PER_EVENT
     )
     if event is None:
-        print("No events ready to finalize")
+        logger.info("No events ready to finalize")
         return
 
     slack_ids = [
@@ -142,17 +151,13 @@ def auto_reply():
             slack_id,
             "Alright then, I'll assume you can't make it. Crossing my fingers for a more positive response next time! 🤞",
         )
-        print("%s didn't answer. Setting RSVP to not attending." % slack_id)
+        logger.info(
+            "User didn't answer. Setting RSVP to not attending. [slack_id=%s]", slack_id
+        )
 
 
 def rsvp(slack_id: str, answer: RSVP):
     pizza.services.rsvp(slack_id=slack_id, answer=answer)
-
-
-def send_slack_message(channel_id, text, attachments=None, thread_ts=None):
-    if channel_id != "U01KJCSS9BQ":  # TODO: Remove
-        return
-    return slack.send_slack_message(channel_id, text, attachments, thread_ts)
 
 
 def get_invited_users():

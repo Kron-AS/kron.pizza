@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 import logging
-
 import os
 
 from slack_bolt import App
@@ -13,7 +12,7 @@ logging.basicConfig(level=logging.INFO)
 app = App(token=os.environ["SLACK_BOT_TOKEN"])
 
 
-@app.event('message')
+@app.event("message")
 def on_message(message, say, logger):
     logger.info("Received message [payload=%s]", message)
 
@@ -22,12 +21,19 @@ def on_message(message, say, logger):
         return
 
     if "subtype" in message:
-        logger.info("Ignoring message as it has a subtype [subtype=%s]", message["subtype"])
+        logger.info(
+            "Ignoring message as it has a subtype [subtype=%s]", message["subtype"]
+        )
         return
 
     if not message["user"] in api.get_invited_users():
-        logger.info("Ignoring message, could not find invited user [user=%s]", message["user"])
-        api.send_slack_message(message["channel"], "Hehe, jeg er teit og skjønner ikke hva du vil. Ikke tid for pizza nå? 😳")
+        logger.info(
+            "Ignoring message, could not find invited user [user=%s]", message["user"]
+        )
+        api.send_slack_message(
+            message["channel"],
+            "Hehe, jeg er teit og skjønner ikke hva du vil. Ikke tid for pizza nå? 😳",
+        )
         return
 
     if message["text"].lower() == "ja":
