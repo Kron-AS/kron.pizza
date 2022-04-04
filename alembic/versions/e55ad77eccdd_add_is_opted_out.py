@@ -17,9 +17,9 @@ depends_on = None
 
 
 def upgrade():
-    op.add_column(
-        "slack_users", sa.Column("is_opted_out", sa.Boolean(), nullable=False)
-    )
+    op.add_column("slack_users", sa.Column("is_opted_out", sa.Boolean(), nullable=True))
+    op.execute("UPDATE slack_users SET is_opted_out = false")
+    op.execute("ALTER TABLE slack_users ALTER COLUMN is_opted_out NOT NULL")
 
 
 def downgrade():
