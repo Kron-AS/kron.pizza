@@ -30,10 +30,14 @@ class SlackUser(Base):
 
 class Event(Base):
     __tablename__ = "events"
-    id = Column(pg.UUID(as_uuid=True), primary_key=True)
+    id = Column(
+        pg.UUID(as_uuid=True),
+        primary_key=True,
+        server_default=sa.text("gen_random_uuid()"),
+    )
     time = Column(sa.DateTime(timezone=True), nullable=False)
     location = Column(sa.Text, nullable=False)
-    finalized = Column(sa.Boolean, nullable=False, default=False)
+    finalized = Column(sa.Boolean, nullable=False, default=False, server_default="f")
 
 
 class Invitation(Base):
