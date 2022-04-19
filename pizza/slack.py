@@ -4,10 +4,10 @@ import os
 
 from slack_sdk.web import WebClient
 
-from pizza.utils import getLogger
+from pizza.utils import getLogger, strtobool
 
 slack_token = os.environ["SLACK_BOT_TOKEN"]
-debug = os.environ.get("DEBUG", False)
+debug = strtobool(os.environ.get("DEBUG", "False"))
 logger = getLogger(__name__)
 
 
