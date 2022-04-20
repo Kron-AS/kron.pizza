@@ -20,6 +20,7 @@ def main():
     api.auto_reply()
     api.invite_if_needed()
     api.send_reminders()
+    api.finalize_event_if_complete()
 
 
 if __name__ == "__main__":
