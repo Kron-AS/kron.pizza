@@ -56,10 +56,7 @@ def get_users_to_invite(
                     Invitation.rsvp == RSVP.attending,
                     Invitation.event_id.in_(
                         db.query(Event.id)
-                        .filter(
-                            Event.finalized == True,  # noqa
-                            Event.time < tz_aware_now(),
-                        )
+                        .filter(Event.finalized == True)  # noqa
                         .order_by(Event.time.desc())
                         .limit(number_of_events_regarded)
                     ),
