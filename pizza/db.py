@@ -19,7 +19,7 @@ def get_engine(
 
 
 def database_url():
-    uri = os.getenv("DATABASE_URL")
+    uri = os.getenv("DATABASE")
     if uri.startswith("postgres://"):
         uri = uri.replace("postgres://", "postgresql://", 1)
     return uri
